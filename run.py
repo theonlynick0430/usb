@@ -1,6 +1,6 @@
 import mujoco
 import mujoco.viewer
-from controllers import diffik
+from controllers import DiffIKController, panda_gripper_action
 import time
 import numpy as np 
 
@@ -40,21 +40,9 @@ def main() -> None:
     # End-effector body we wish to control, in this case the hand
     ee_body_id = model.body("hand").id
 
-    # Get the dof and actuator ids for the joints we wish to control. These are copied
-    # from the XML file. Feel free to comment out some joints to see the effect on
-    # the controller.
-    joint_names = [
-        "joint1",
-        "joint2",
-        "joint3",
-        "joint4",
-        "joint5",
-        "joint6",
-        "joint7",
-    ]
-    # note: exclude gripper from diffik control
-    dof_ids = np.array([model.joint(name).id for name in joint_names])
-    actuator_ids = np.array([model.actuator(f"actuator{i}").id for i in range(1,8)])
+    # note: exclude gripper from control
+    dof_ids = np.arange(7)
+    actuator_ids = np.arange(7)
 
     # Initial joint configuration saved as a keyframe in the XML file.
     key_id = model.key("home").id
@@ -68,6 +56,26 @@ def main() -> None:
 
         # Toggle site frame visualization.
         viewer.opt.frame = mujoco.mjtFrame.mjFRAME_SITE
+
+        mujoco.mj_step(model, data)
+        viewer.sync()
+
+        controller = DiffIKController(model, data, viewer, dof_ids, actuator_ids, ee_body_id, dt, integration_dt, damping, max_angvel)
+
+        ee_body_quat = np.zeros(4)
+        mujoco.mju_mat2Quat(ee_body_quat, data.body(ee_body_id).xmat)
+        usb_plug_body_id = model.body("usb_plug").id
+        usb_plug_body_quat = np.zeros(4)
+        mujoco.mju_mat2Quat(usb_plug_body_quat, data.body(usb_plug_body_id).xmat)
+        target_ee_quat = np.zeros(4)
+        mujoco.mju_mulQuat(target_ee_quat, ee_body_quat, usb_plug_body_quat)
+        target_ee_pos = data.body(usb_plug_body_id).xpos.copy()
+        target_ee_pos[2] += 0.25
+
+        gripper_actuator_id = 7
+
+        controller.linear_action(target_ee_pos, target_ee_quat, max_steps=2000)
+        panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=False)
 
         while viewer.is_running():
             step_start = time.time()

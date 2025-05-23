@@ -18,6 +18,8 @@
         <material name="usb_port_peg_material" rgba="0.8 0.2 0.2 0.7"/>
     </asset>
 
+    <include file="panda.xml"/>
+
     <worldbody>
         <light pos="0 0 2.0" dir="0 0 -1" directional="true"/>
         <geom name="floor" size="2 2 0.05" type="plane" material="floor_material"/>
@@ -76,11 +78,9 @@
         </body>
     </worldbody>
 
-    <include file="panda.xml"/>
-
     <keyframe>
         <key name="home"
-             qpos="0.43 -0.10 0.455 1 0 0 0 0 0 0 -1.5708 0 1.5708 0.782 0.04 0.04"
+             qpos="0 0 0 -1.5708 0 1.5708 0.782 0.04 0.04 0.43 -0.10 0.455 1 0 0 0"
              ctrl="0 0 0 -1.5708 0 1.5708 0.782 255"/>
     </keyframe>
 </mujoco>
