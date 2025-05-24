@@ -114,7 +114,7 @@ def main() -> None:
         pre_insert_quat = np.zeros(4)
         mujoco.mju_mulQuat(pre_insert_quat, usb_port_body_quat, ee_initial_quat)
 
-        # Generate collision-free joint configurations at pre-grasp and pre-insert using mink
+        # Generate collision-free joint configurations at pre-grasp and pre-insert poses
         configuration = mink.Configuration(model)
 
         ik_task = mink.FrameTask(

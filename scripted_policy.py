@@ -27,6 +27,7 @@ CLEARANCE_HEIGHT = 0.25
 PICK_HEIGHT = 0.15
 INSERT_HEIGHT = 0.15
 
+
 def domain_randomization(data):
     """
     Add random noise to the USB plug's position and orientation.
