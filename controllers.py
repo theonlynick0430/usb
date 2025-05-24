@@ -161,11 +161,17 @@ def panda_gripper_action(model, data, viewer, actuator_id, dt, open=True):
         dt: Simulation timestep in seconds
         open: True to open the gripper, False to close it
     """
+    step_start = time.time()
+
     if open:
         data.ctrl[actuator_id] = 255.0
     else:
         data.ctrl[actuator_id] = 0.0
+    
     mujoco.mj_step(model, data)
     viewer.sync()
-    time.sleep(dt)
+
+    time_until_next_step = dt - (time.time() - step_start)
+    if time_until_next_step > 0:
+        time.sleep(time_until_next_step)
     
