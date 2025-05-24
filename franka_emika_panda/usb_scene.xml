@@ -1,6 +1,8 @@
 <mujoco model="usb_scene">
     <statistic center="0.565 0 0.525" extent="1.5" meansize="0.05"/>
 
+    <option impratio="10"/>
+
     <visual>
         <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0 0 0"/>
         <global azimuth="120" elevation="-20"/>
@@ -34,10 +36,10 @@
 
         <body name="usb_plug" pos="0.43 -0.10 0.48">
             <joint name="usb_joint" type="free" damping="0.1"/>
-            <geom name="plug_coll_px" type="box" size="0.01 0.03 0.03" pos="0.02 0 0" material="usb_plug_body_material" density="1000"/>
-            <geom name="plug_coll_nx" type="box" size="0.01 0.03 0.03" pos="-0.02 0 0" material="usb_plug_body_material" density="1000"/>
-            <geom name="plug_coll_py" type="box" size="0.01 0.0125 0.03" pos="0 0.0175 0" material="usb_plug_body_material" density="1000"/>
-            <geom name="plug_coll_ny" type="box" size="0.01 0.0125 0.03" pos="0 -0.0175 0" material="usb_plug_body_material" density="1000"/>
+            <geom name="plug_coll_px" type="box" size="0.0085 0.027 0.03" pos="0.0185 0 0" material="usb_plug_body_material" density="1"/>
+            <geom name="plug_coll_nx" type="box" size="0.0085 0.027 0.03" pos="-0.0185 0 0" material="usb_plug_body_material" density="1"/>
+            <geom name="plug_coll_py" type="box" size="0.01 0.011 0.03" pos="0 0.016 0" material="usb_plug_body_material" density="1"/>
+            <geom name="plug_coll_ny" type="box" size="0.01 0.011 0.03" pos="0 -0.016 0" material="usb_plug_body_material" density="1"/>
             <geom name="plug_hole_visual"
                   type="box"
                   size="0.01 0.005 0.03"

@@ -32,17 +32,16 @@ def main() -> None:
 
     # Enable gravity compensation
     model.body_gravcomp[:] = float(gravity_compensation)
-    # disable for usb_plug
-    usb_plug_body_id = model.body("usb_plug").id
-    model.body_gravcomp[usb_plug_body_id] = 0.0
     model.opt.timestep = dt
 
-    # End-effector body we wish to control, in this case the hand
     ee_body_id = model.body("hand").id
+    usb_plug_body_id = model.body("usb_plug").id
+    usb_port_body_id = model.body("usb_port").id
 
     # note: exclude gripper from control
     dof_ids = np.arange(7)
     actuator_ids = np.arange(7)
+    gripper_actuator_id = 7
 
     # Initial joint configuration saved as a keyframe in the XML file.
     key_id = model.key("home").id
@@ -62,20 +61,37 @@ def main() -> None:
 
         controller = DiffIKController(model, data, viewer, dof_ids, actuator_ids, ee_body_id, dt, integration_dt, damping, max_angvel)
 
-        ee_body_quat = np.zeros(4)
-        mujoco.mju_mat2Quat(ee_body_quat, data.body(ee_body_id).xmat)
-        usb_plug_body_id = model.body("usb_plug").id
+        # Simplified state machine for usb plug insertion
+        # 1) Pick up the usb plug
+        # move above the usb plug
         usb_plug_body_quat = np.zeros(4)
         mujoco.mju_mat2Quat(usb_plug_body_quat, data.body(usb_plug_body_id).xmat)
         target_ee_quat = np.zeros(4)
-        mujoco.mju_mulQuat(target_ee_quat, ee_body_quat, usb_plug_body_quat)
+        mujoco.mju_mulQuat(target_ee_quat, np.array([0, 1, 0, 0]), usb_plug_body_quat)
         target_ee_pos = data.body(usb_plug_body_id).xpos.copy()
-        target_ee_pos[2] += 0.25
-
-        gripper_actuator_id = 7
-
-        controller.linear_action(target_ee_pos, target_ee_quat, max_steps=2000)
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.25]), target_ee_quat, max_steps=2000)
+        # open gripper
+        panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
+        # move down
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.15]), target_ee_quat, max_steps=1000)
+        # close gripper
         panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=False)
+        # move up 
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.25]), target_ee_quat, max_steps=1000)
+        # 2) Insert the usb plug into the usb port
+        # move above the usb port
+        usb_port_body_quat = np.zeros(4)
+        mujoco.mju_mat2Quat(usb_port_body_quat, data.body(usb_port_body_id).xmat)
+        mujoco.mju_mulQuat(target_ee_quat, np.array([0, 1, 0, 0]), usb_port_body_quat)
+        target_ee_pos = data.body(usb_port_body_id).xpos.copy()
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.25]), target_ee_quat, max_steps=2000)
+        # move down
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.1]), target_ee_quat, max_steps=1000)
+        # open gripper
+        panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
+        # move up
+        controller.linear_action(target_ee_pos + np.array([0, 0, 0.25]), target_ee_quat, max_steps=1000)
+
 
         while viewer.is_running():
             step_start = time.time()
