@@ -1,39 +1,11 @@
 import mujoco
 import mujoco.viewer
 from controllers import DiffIKController, panda_gripper_action
+from constants import *
+from utils import domain_randomization
 import mink
 import time
 import numpy as np 
-
-
-# Integration timestep in seconds. This corresponds to the amount of time the joint
-# velocities will be integrated for to obtain the desired joint positions.
-integration_dt: float = 0.1
-
-# Damping term for the pseudoinverse. This is used to prevent joint velocities from
-# becoming too large when the Jacobian is close to singular.
-damping: float = 1e-4
-
-# Whether to enable gravity compensation.
-gravity_compensation: bool = True
-
-# Simulation timestep in seconds.
-dt: float = 0.002
-
-# Maximum allowable joint velocity in rad/s.
-max_angvel = 0.785
-
-
-CLEARANCE_HEIGHT = 0.25
-PICK_HEIGHT = 0.15
-INSERT_HEIGHT = 0.15
-
-
-# IK parameters
-SOLVER = "quadprog"
-POS_THRESHOLD = 1e-3
-ORI_THRESHOLD = 1e-3
-MAX_ITERS = 10000
 
 
 def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_threshold, max_iters):
@@ -49,15 +21,6 @@ def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_thr
         if pos_achieved and ori_achieved:
             return True
     return False
-
-def domain_randomization(data):
-    """
-    Add random noise to the USB plug's position and orientation.
-    """    
-    data.qpos[-7:-5] += np.random.uniform(-0.02, 0.02, size=2)
-    axis = np.array([0, 0, 1])
-    angle = np.random.uniform(0, np.pi/4)
-    mujoco.mju_axisAngle2Quat(data.qpos[-4:], axis, angle)
 
 def main() -> None:
     assert mujoco.__version__ >= "3.1.0", "Please upgrade to mujoco 3.1.0 or later."
