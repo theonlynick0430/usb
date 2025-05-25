@@ -104,7 +104,7 @@ class RRTConnect:
         Args:
             q_start: start configuration
             q_goal: goal configuration
-            smooth: whether to smooth the path post-planning
+            smooth: whether to smooth the path
         """
         self.start = Node(q_start)
         self.goal = Node(q_goal)
@@ -126,7 +126,7 @@ class RRTConnect:
                     else:
                         path = path_b[::-1] + path_a
                     if smooth:
-                        self.smooth(path)
+                        path = self.smooth(path)
                     return path
             # swap trees
             self.tree_a, self.tree_b = self.tree_b, self.tree_a
@@ -135,7 +135,8 @@ class RRTConnect:
     
     def smooth(self, path, max_attempts=100):
         """
-        Smooth the given path in place by shortcutting collision-free straight segments.
+        Smooth the given path by shortcutting collision-free straight segments,
+        then re-interpolate the final path to ensure step size resolution.
 
         Args:
             path: list of joint configurations (np.ndarray)
@@ -144,6 +145,7 @@ class RRTConnect:
         Returns:
             Smoothed and interpolated path.
         """
+        path = path.copy()
         for _ in range(max_attempts):
             if len(path) < 3:
                 break

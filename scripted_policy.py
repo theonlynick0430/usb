@@ -75,6 +75,11 @@ def main() -> None:
         controller.linear_action(usb_port_pos + np.array([0, 0, CLEARANCE_HEIGHT]), aligned_ee_quat, max_steps=2000)
         # rotate to usb port orientation
         controller.linear_action(usb_port_pos + np.array([0, 0, CLEARANCE_HEIGHT]), ee_initial_quat, max_steps=1500)
+        # pause 
+        for _ in range(10):
+            mujoco.mj_step(model, data)
+            viewer.sync()
+            time.sleep(0.1)
         # move down
         controller.linear_action(usb_port_pos + np.array([0, 0, INSERT_HEIGHT]), ee_initial_quat, max_steps=1000)
         # open gripper

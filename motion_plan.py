@@ -138,6 +138,11 @@ def main() -> None:
         controller.linear_action(pre_grasp_pos, pre_grasp_quat, max_steps=1000)
         # execute plan from pre-grasp to pre-insert
         execute_joint_traj(model, data, viewer, plan2, dof_ids, actuator_ids, dt)
+        # pause 
+        for _ in range(10):
+            mujoco.mj_step(model, data)
+            viewer.sync()
+            time.sleep(0.1)
         # scripted insert
         controller.linear_action(pre_insert_pos + np.array([0, 0, INSERT_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=1000)
         panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
