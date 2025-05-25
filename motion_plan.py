@@ -6,11 +6,10 @@ from constants import *
 from utils import domain_randomization, execute_joint_traj
 import mink
 import time
-import math
 import numpy as np 
 from copy import deepcopy
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 
 def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_threshold, max_iters):

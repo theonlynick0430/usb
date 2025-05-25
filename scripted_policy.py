@@ -5,7 +5,6 @@ from utils import domain_randomization
 from constants import *
 import time
 import numpy as np 
-import math
 
 
 def main() -> None:
