@@ -2,6 +2,10 @@ import numpy as np
 import mujoco
 
 
+# don't count collisions between objects and table
+DEFAULT_COLLISION_COUNT = 16
+
+
 class Node:
     def __init__(self, q, parent=None):
         """
@@ -48,7 +52,7 @@ class RRTConnect:
         """Check if a configuration is valid."""
         self.data.qpos[self.dof_ids] = q
         mujoco.mj_forward(self.model, self.data)
-        return self.data.ncon == 0
+        return self.data.ncon <= DEFAULT_COLLISION_COUNT
     
     def new_config(self, q_near, q_rand):
         """Generate a new configuration by interpolating between q_near and q_rand."""

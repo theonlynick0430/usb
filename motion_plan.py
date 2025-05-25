@@ -1,11 +1,13 @@
 import mujoco
 import mujoco.viewer
 from controllers import DiffIKController, panda_gripper_action
+from rrt_connect import RRTConnect
 from constants import *
-from utils import domain_randomization
+from utils import domain_randomization, execute_joint_traj
 import mink
 import time
 import numpy as np 
+from copy import deepcopy
 
 
 def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_threshold, max_iters):
@@ -116,12 +118,33 @@ def main() -> None:
         else:
             print("Failed to find pre-insert configuration")
             return
+        
+        # Plan paths between key configurations
+        planner = RRTConnect(model, deepcopy(data), dof_ids)
+        # 1) plan from init to pre-grasp
+        plan1 = planner.plan(data.qpos[:7], pre_grasp_config)
+        print(f"Found path with {len(plan1)} configurations")
+        planner.reset()
+        # 2) plan from pre-grasp to pre-insert
+        plan2 = planner.plan(pre_grasp_config, pre_insert_config)
+        print(f"Found path with {len(plan2)} configurations")
+
+        # Execute paths + scripted policy
+        # execute plan from init to pre-grasp
+        execute_joint_traj(model, data, viewer, plan1, dof_ids, actuator_ids, dt)
+        # scripted grasp
+        controller.linear_action(pre_grasp_pos + np.array([0, 0, PICK_HEIGHT-CLEARANCE_HEIGHT]), pre_grasp_quat, max_steps=1000)
+        panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=False)
+        controller.linear_action(pre_grasp_pos, pre_grasp_quat, max_steps=1000)
+        # execute plan from pre-grasp to pre-insert
+        execute_joint_traj(model, data, viewer, plan2, dof_ids, actuator_ids, dt)
+        # scripted insert
+        controller.linear_action(pre_insert_pos + np.array([0, 0, INSERT_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=1000)
+        panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
+        controller.linear_action(pre_insert_pos, pre_insert_quat, max_steps=1000)
 
         while viewer.is_running():
             step_start = time.time()
-
-            # Set robot controls to pre-grasp configuration
-            data.ctrl[:7] = pre_insert_config
 
             mujoco.mj_step(model, data)
             viewer.sync()
