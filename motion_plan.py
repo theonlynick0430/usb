@@ -6,6 +6,7 @@ from constants import *
 from utils import domain_randomization, execute_joint_traj
 import mink
 import time
+import math
 import numpy as np 
 from copy import deepcopy
 
@@ -28,7 +29,7 @@ def main() -> None:
     assert mujoco.__version__ >= "3.1.0", "Please upgrade to mujoco 3.1.0 or later."
 
     # Load the model and data.
-    model = mujoco.MjModel.from_xml_path("franka_emika_panda/usb_obs_scene.xml")
+    model = mujoco.MjModel.from_xml_path("franka_emika_panda/usb_clutter_scene.xml")
     data = mujoco.MjData(model)
 
     # Enable gravity compensation
@@ -145,10 +146,16 @@ def main() -> None:
         # scripted insert
         controller.linear_action(pre_insert_pos + np.array([0, 0, INSERT_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=1000)
         panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
-        controller.linear_action(pre_insert_pos + np.array([0, WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
-        controller.linear_action(pre_insert_pos + np.array([0, -WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
-        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
-        controller.linear_action(pre_insert_pos, pre_insert_quat, max_steps=1000)
+        controller.linear_action(pre_insert_pos + np.array([0, WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
+        controller.linear_action(pre_insert_pos + np.array([0, -WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
+        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
+        final_quat = np.zeros(4)
+        mujoco.mju_mulQuat(final_quat, np.array([math.sqrt(2)/2, 0, 0, math.sqrt(2)/2]), pre_insert_quat)
+        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=1000)
+        controller.linear_action(pre_insert_pos + np.array([WIGGLE_EPS, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
+        controller.linear_action(pre_insert_pos + np.array([-WIGGLE_EPS, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
+        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
+        controller.linear_action(pre_insert_pos, final_quat, max_steps=1000)
 
         while viewer.is_running():
             step_start = time.time()

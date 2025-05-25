@@ -19,6 +19,7 @@
         <material name="usb_port_wall_material" rgba="0.5 0.5 0.5 1"/>
         <material name="usb_port_peg_material" rgba="0.8 0.2 0.2 0.7"/>
         <material name="obstacle_material" rgba="0.3 0.3 0.3 0.8"/>
+        <material name="sphere_material" rgba="0.2 0.6 0.2 0.8"/>
     </asset>
 
     <include file="panda.xml"/>
@@ -80,12 +81,35 @@
                   material="usb_port_peg_material"/>
         </body>
 
-        <!-- Floating wall obstacle -->
-        <body name="obstacle" pos="0.43 0 0.55">
-            <geom name="obstacle_wall" 
-                  type="box" 
-                  size="0.05 0.01 0.08" 
-                  material="obstacle_material"
+        <body name="sphere1" pos="0.6 0.2 0.55">
+            <geom name="sphere1_geom" 
+                  type="sphere" 
+                  size="0.04" 
+                  material="sphere_material"
+                  contype="65535" conaffinity="65535"/>
+        </body>
+
+        <body name="sphere2" pos="0.475 -0.08 0.65">
+            <geom name="sphere2_geom" 
+                  type="sphere" 
+                  size="0.03" 
+                  material="sphere_material"
+                  contype="65535" conaffinity="65535"/>
+        </body>
+
+        <body name="sphere3" pos="0.4 0 0.6">
+            <geom name="sphere3_geom" 
+                  type="sphere" 
+                  size="0.05" 
+                  material="sphere_material"
+                  contype="65535" conaffinity="65535"/>
+        </body>
+
+        <body name="sphere4" pos="0.25 -0.2 0.55">
+            <geom name="sphere4_geom" 
+                  type="sphere" 
+                  size="0.02" 
+                  material="sphere_material"
                   contype="65535" conaffinity="65535"/>
         </body>
     </worldbody>
