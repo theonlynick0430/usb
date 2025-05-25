@@ -28,7 +28,7 @@ def main() -> None:
     assert mujoco.__version__ >= "3.1.0", "Please upgrade to mujoco 3.1.0 or later."
 
     # Load the model and data.
-    model = mujoco.MjModel.from_xml_path("franka_emika_panda/usb_scene.xml")
+    model = mujoco.MjModel.from_xml_path("franka_emika_panda/usb_obs_scene.xml")
     data = mujoco.MjData(model)
 
     # Enable gravity compensation

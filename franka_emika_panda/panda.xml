@@ -43,7 +43,6 @@
     <material class="panda" name="green" rgba="0 1 0 1"/>
     <material class="panda" name="light_blue" rgba="0.039216 0.541176 0.780392 1"/>
 
-    <!-- Collision meshes -->
     <mesh name="link0_c" file="link0.stl"/>
     <mesh name="link1_c" file="link1.stl"/>
     <mesh name="link2_c" file="link2.stl"/>
@@ -56,7 +55,6 @@
     <mesh name="link7_c" file="link7.stl"/>
     <mesh name="hand_c" file="hand.stl"/>
 
-    <!-- Visual meshes -->
     <mesh file="link0_0.obj"/>
     <mesh file="link0_1.obj"/>
     <mesh file="link0_2.obj"/>
@@ -215,6 +213,8 @@
                       <geom mesh="hand_3" material="white" class="visual"/>
                       <geom mesh="hand_4" material="off_white" class="visual"/>
                       <geom mesh="hand_c" class="collision"/>
+                      <geom name="pre_grasp_volume" type="box" size="0.03 0.03 0.03" pos="0 0 0.08"       
+                          rgba="0 0 0 0" class="collision" contype="2" conaffinity="4"/> 
                       <body name="left_finger" pos="0 0 0.0584">
                         <inertial mass="0.015" pos="0 0 0" diaginertia="2.375e-6 2.375e-6 7.5e-7"/>
                         <joint name="finger_joint1" class="finger"/>
@@ -272,12 +272,8 @@
     <general class="panda" name="actuator6" joint="joint6" gainprm="2000" biasprm="0 -2000 -200" forcerange="-12 12"
       ctrlrange="-0.0175 3.7525"/>
     <general class="panda" name="actuator7" joint="joint7" gainprm="2000" biasprm="0 -2000 -200" forcerange="-12 12"/>
-    <!-- Remap original ctrlrange (0, 0.04) to (0, 255): 0.04 * 100 / 255 = 0.01568627451 -->
     <general class="panda" name="actuator8" tendon="split" forcerange="-100 100" ctrlrange="0 255"
       gainprm="0.01568627451 0 0" biasprm="0 -100 -10"/>
   </actuator>
 
-  <!-- <keyframe>
-    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0.04 0.04" ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 255"/>
-  </keyframe> -->
-</mujoco>
+  </mujoco>
