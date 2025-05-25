@@ -9,6 +9,8 @@ import time
 import math
 import numpy as np 
 from copy import deepcopy
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
 
 def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_threshold, max_iters):
@@ -25,11 +27,15 @@ def converge_ik(configuration, tasks, dt, solver, limits, pos_threshold, ori_thr
             return True
     return False
 
-def main() -> None:
+@hydra.main(version_base=None, config_path="configs", config_name="config")
+def main(config: DictConfig):    
     assert mujoco.__version__ >= "3.1.0", "Please upgrade to mujoco 3.1.0 or later."
 
     # Load the model and data.
-    model = mujoco.MjModel.from_xml_path("franka_emika_panda/usb_clutter_scene.xml")
+    tag = ""
+    if config.scene != "plain":
+        tag = f"{config.scene}_"
+    model = mujoco.MjModel.from_xml_path(f"franka_emika_panda/usb_{tag}scene.xml")
     data = mujoco.MjData(model)
 
     # Enable gravity compensation
@@ -121,7 +127,7 @@ def main() -> None:
             return
         
         # Plan paths between key configurations
-        planner = RRTConnect(model, deepcopy(data), dof_ids)
+        planner = RRTConnect(model, deepcopy(data), dof_ids, step_size=config.step_size, max_iters=config.max_iters)
         # 1) plan from init to pre-grasp
         plan1 = planner.plan(data.qpos[:7], pre_grasp_config)
         print(f"Found path with {len(plan1)} configurations")
@@ -149,13 +155,7 @@ def main() -> None:
         controller.linear_action(pre_insert_pos + np.array([0, WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
         controller.linear_action(pre_insert_pos + np.array([0, -WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
         controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=750)
-        final_quat = np.zeros(4)
-        mujoco.mju_mulQuat(final_quat, np.array([math.sqrt(2)/2, 0, 0, math.sqrt(2)/2]), pre_insert_quat)
-        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=1000)
-        controller.linear_action(pre_insert_pos + np.array([WIGGLE_EPS, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
-        controller.linear_action(pre_insert_pos + np.array([-WIGGLE_EPS, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
-        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), final_quat, max_steps=750)
-        controller.linear_action(pre_insert_pos, final_quat, max_steps=1000)
+        controller.linear_action(pre_insert_pos, pre_insert_quat, max_steps=1000)
 
         while viewer.is_running():
             step_start = time.time()

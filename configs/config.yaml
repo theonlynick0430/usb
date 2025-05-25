@@ -1,0 +1,6 @@
+# Scene configuration
+scene: clutter  # options: plain, wall, spheres, clutter
+
+# RRT parameters
+step_size: 0.05
+max_iters: 1000

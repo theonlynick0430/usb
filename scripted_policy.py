@@ -88,14 +88,8 @@ def main() -> None:
         controller.linear_action(usb_port_pos + np.array([0, WIGGLE_EPS, WIGGLE_HEIGHT]), ee_initial_quat, max_steps=750)
         controller.linear_action(usb_port_pos + np.array([0, -WIGGLE_EPS, WIGGLE_HEIGHT]), ee_initial_quat, max_steps=750)
         controller.linear_action(usb_port_pos + np.array([0, 0, WIGGLE_HEIGHT]), ee_initial_quat, max_steps=750)
-        final_quat = np.zeros(4)
-        mujoco.mju_mulQuat(final_quat, np.array([math.sqrt(2)/2, 0, 0, math.sqrt(2)/2]), ee_initial_quat)
-        controller.linear_action(usb_port_pos + np.array([0, 0, WIGGLE_HEIGHT]), final_quat, max_steps=1000)
-        controller.linear_action(usb_port_pos + np.array([WIGGLE_EPS, 0, WIGGLE_HEIGHT]), final_quat, max_steps=750)
-        controller.linear_action(usb_port_pos + np.array([-WIGGLE_EPS, 0, WIGGLE_HEIGHT]), final_quat, max_steps=750)
-        controller.linear_action(usb_port_pos + np.array([0, 0, WIGGLE_HEIGHT]), final_quat, max_steps=750)
         # move up
-        controller.linear_action(usb_port_pos + np.array([0, 0, CLEARANCE_HEIGHT]), final_quat, max_steps=1000)
+        controller.linear_action(usb_port_pos + np.array([0, 0, CLEARANCE_HEIGHT]), ee_initial_quat, max_steps=1000)
 
         while viewer.is_running():
             step_start = time.time()

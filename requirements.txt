@@ -1,2 +1,3 @@
 mujoco
 mink
+hydra-core
