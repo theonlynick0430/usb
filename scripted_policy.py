@@ -79,11 +79,14 @@ def main() -> None:
         for _ in range(10):
             mujoco.mj_step(model, data)
             viewer.sync()
-            time.sleep(0.1)
         # move down
         controller.linear_action(usb_port_pos + np.array([0, 0, INSERT_HEIGHT]), ee_initial_quat, max_steps=1000)
         # open gripper
         panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
+        # wiggle
+        controller.linear_action(usb_port_pos + np.array([0, WIGGLE_EPS, INSERT_HEIGHT]), ee_initial_quat, max_steps=500)
+        controller.linear_action(usb_port_pos + np.array([0, -WIGGLE_EPS, INSERT_HEIGHT]), ee_initial_quat, max_steps=500)
+        controller.linear_action(usb_port_pos + np.array([0, 0, INSERT_HEIGHT]), ee_initial_quat, max_steps=500)
         # move up
         controller.linear_action(usb_port_pos + np.array([0, 0, CLEARANCE_HEIGHT]), ee_initial_quat, max_steps=1000)
 

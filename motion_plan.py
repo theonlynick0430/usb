@@ -142,10 +142,12 @@ def main() -> None:
         for _ in range(10):
             mujoco.mj_step(model, data)
             viewer.sync()
-            time.sleep(0.1)
         # scripted insert
         controller.linear_action(pre_insert_pos + np.array([0, 0, INSERT_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=1000)
         panda_gripper_action(model, data, viewer, gripper_actuator_id, dt, open=True)
+        controller.linear_action(pre_insert_pos + np.array([0, WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
+        controller.linear_action(pre_insert_pos + np.array([0, -WIGGLE_EPS, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
+        controller.linear_action(pre_insert_pos + np.array([0, 0, WIGGLE_HEIGHT-CLEARANCE_HEIGHT]), pre_insert_quat, max_steps=500)
         controller.linear_action(pre_insert_pos, pre_insert_quat, max_steps=1000)
 
         while viewer.is_running():
