@@ -45,11 +45,11 @@ class RRTConnect:
         self.jnt_range = model.jnt_range[dof_ids].T
 
     def random_config(self):
-        """Randomly sample a configuration from the joint range."""
+        """Return a random configuration from the joint range."""
         return np.random.uniform(*self.jnt_range)
     
     def is_valid(self, q):
-        """Check if a configuration is valid."""
+        """Return if a configuration is valid."""
         self.data.qpos[self.dof_ids] = q
         mujoco.mj_forward(self.model, self.data)
         return self.data.ncon <= DEFAULT_COLLISION_COUNT
@@ -97,8 +97,15 @@ class RRTConnect:
             if np.linalg.norm(q_near - q) <= self.step_size:
                 return node_near
     
-    def plan(self, q_start, q_goal):
-        """Plan a path from q_start to q_goal."""
+    def plan(self, q_start, q_goal, smooth=True):
+        """
+        Plan a path from q_start to q_goal.
+
+        Args:
+            q_start: start configuration
+            q_goal: goal configuration
+            smooth: whether to smooth the path post-planning
+        """
         self.start = Node(q_start)
         self.goal = Node(q_goal)
         self.tree_a = [self.start]
@@ -113,14 +120,65 @@ class RRTConnect:
                     # path found 
                     path_a = self.dfs(extended_node)
                     path_b = self.dfs(connected_node)
+                    path = None
                     if self.tree_a[0] == self.start:
-                        return path_a[::-1] + path_b
+                        path = path_a[::-1] + path_b
                     else:
-                        return path_b[::-1] + path_a
+                        path = path_b[::-1] + path_a
+                    if smooth:
+                        self.smooth(path)
+                    return path
             # swap trees
             self.tree_a, self.tree_b = self.tree_b, self.tree_a
         # no path found
         return None
+    
+    def smooth(self, path, max_attempts=100):
+        """
+        Smooth the given path in place by shortcutting collision-free straight segments.
+
+        Args:
+            path: list of joint configurations (np.ndarray)
+            max_attempts: number of shortcut attempts
+
+        Returns:
+            Smoothed and interpolated path.
+        """
+        for _ in range(max_attempts):
+            if len(path) < 3:
+                break
+
+            i, j = sorted(np.random.choice(len(path), size=2, replace=False))
+            if j - i < 2:
+                continue
+
+            q_i, q_j = path[i], path[j]
+
+            # attempt shortcut
+            num_steps = int(np.ceil(np.linalg.norm(q_j - q_i) / self.step_size))
+            success = True
+            for alpha in np.linspace(0, 1, num_steps):
+                q_interp = (1 - alpha) * q_i + alpha * q_j
+                if not self.is_valid(q_interp):
+                    success = False
+                    break
+
+            if success:
+                # replace segment with direct connection
+                path = path[:i+1] + path[j:]
+
+        # ensure step size resolution
+        smoothed = [path[0]]
+        for i in range(1, len(path)):
+            q_start, q_end = path[i - 1], path[i]
+            delta = q_end - q_start
+            dist = np.linalg.norm(delta)
+            steps = max(1, int(np.ceil(dist / self.step_size)))
+            for alpha in np.linspace(0, 1, steps, endpoint=False)[1:]:
+                smoothed.append(q_start + alpha * delta)
+            smoothed.append(q_end)
+
+        return smoothed
 
     def reset(self):
         """Reset the RRT search."""
